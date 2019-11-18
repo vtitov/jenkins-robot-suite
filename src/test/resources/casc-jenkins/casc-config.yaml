@@ -1,0 +1,187 @@
+#TODO:
+#  Plugin configuration is no longer supported by the (CasC) plugin.
+#  https://github.com/jenkinsci/configuration-as-code-plugin/releases/tag/configuration-as-code-1.8
+#  You currently can't include it in jcasc, use install-plugins from docker or the plugin installation manager tool
+#  https://github.com/jenkinsci/plugin-installation-manager-tool
+#plugins:
+#    sites:
+#        - id: "default"
+#          url: "http://updates.jenkins.io/update-center.json"
+#        #- id: "jenkins-mirror"
+#        #  url: "http://mirrot//update-center.json"
+
+jenkins:
+    agentProtocols:
+        - "JNLP4-connect"
+        - "Ping"
+    disableRememberMe: false
+    mode: NORMAL
+    numExecutors: 4
+    primaryView:
+        all:
+            name: "all"
+    quietPeriod: 5
+    scmCheckoutRetryCount: 0
+    slaveAgentPort: 50000
+    views:
+        - all:
+              name: "all"
+unclassified:
+#    globalConfigFiles:
+#        configs:
+#    globalLibraries:
+#        libraries:
+#            - defaultVersion: "develop"
+#              name: "commons"
+#              retriever:
+#                  modernSCM:
+#                      scm:
+#                          git:
+#                              remote: "https://github/someuser/sharedlib.git"
+#                              credentialsId: "github_login"
+    globalDefaultFlowDurabilityLevel:
+        durabilityHint: "PERFORMANCE_OPTIMIZED"
+
+tool:
+    git:
+        installations:
+            - home: "git"
+              name: "Default"
+    jdk:
+        defaultProperties:
+            - installSource:
+                  installers:
+                      - jdkInstaller:
+                            acceptLicense: false
+
+security:
+    globalJobDslSecurityConfiguration:
+        useScriptSecurity: false
+
+credentials:
+    system:
+        domainCredentials:
+            - credentials:
+                  - usernamePassword:
+                        description: "github login"
+                        id: "github_login"
+                        password: ${GH_PASSWORD}
+                        scope: GLOBAL
+                        username: ${GH_USERNAME}
+
+#groovy:
+#  - script: >
+#  println("This is Groovy script!");
+
+jobs:
+  - script: >
+      pipelineJob('pipeline01') {
+        definition {
+          cps {
+            script('''
+              pipeline {
+                agent any
+                options {
+                  timeout(time: 5, unit: 'MINUTES')
+                }
+                triggers {
+                  GenericTrigger(
+                    token: 'abc123',
+                    genericVariables: [[key: 'key', value: '$.key']],
+                    causeString: 'Triggered on $key',
+                    printContributedVariables: true,
+                    printPostContent: true,
+                    silentResponse: false,
+                    regexpFilterText: '$key',
+                    //regexpFilterExpression: 'refs/heads/' + BRANCH_NAME,
+                  )
+                }
+                stages {
+                  stage ('echo') {
+                      steps {
+                        echo 'pipline 01'
+                      }
+                  }
+                }
+              }
+            ''')
+            sandbox()
+          }
+        }
+      }
+  - script: >
+      pipelineJob('pipeline02') {
+        definition {
+          cps {
+            script('''
+
+              pipeline {
+                agent any
+                options {
+                  timeout(time: 5, unit: 'MINUTES')
+                }
+                stages {
+                  stage ('build') {
+                    steps {
+                      echo 'build'
+                    }
+                  }
+                  stage ('deploy') {
+                    steps {
+                      echo 'deploy'
+                    }
+                  }
+                }
+              }
+            ''')
+            sandbox()
+          }
+        }
+      }
+  - script: >
+      pipelineJob('echo-words') {
+        definition {
+          cps {
+            script('''
+              pipeline {
+                agent any
+                stages {
+                  stage('init') {
+                    steps {
+                      sh "{ echo foo ; echo bar; } > words.txt"
+                      stash name: 'words', includes: 'words.txt'
+                    }}
+                  stage('grep') {
+                    steps {
+                      unstash name: 'words'
+                      sh "grep foo words.txt"
+                      sh "grep bar words.txt"
+                    }}
+                }}
+            ''')
+            sandbox()
+          }
+        }
+      }
+
+
+
+#timestamps()
+
+#    - script: >
+#          pipelineJob("piplene01"){
+#              definition{
+#                  cpsScm{
+#                      scm{
+#                          git{
+#                              branch("*/develop")
+#                              remote{
+#                                  credentials("github_login")
+#                                  url("https://github/someuser/piplenes.git")
+#                              }
+#                          }
+#                      }
+#                      scriptPath("jobs/piplenes01.jenkins")
+#                  }
+#              }
+#          }

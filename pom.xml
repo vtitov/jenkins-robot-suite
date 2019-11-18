@@ -1,0 +1,435 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>7</version>
+    </parent>
+
+    <groupId>com.github.vtitov.testing-jenkins-pipelines</groupId>
+    <artifactId>jenkins-robot-suite</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+
+    <name>Test Suite - jenkins-ctl-test</name>
+    <!--<url>http://www.company.com/department/project</url>-->
+
+    <properties>
+        <!--<browser>jbrowser</browser>-->
+        <browser>htmlunit</browser>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <robotframework.version>3.1.1</robotframework.version>
+        <java.level>8</java.level>
+        <java.version>1.${java.level}</java.version>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+        <!--<jenkins.war.path>${maven.dependency.org.jenkins-ci.main.jenkins-war.war.path}</jenkins.war.path>-->
+        <jenkins.war.path>${maven.dependency.io.jenkins.plugins.sandbox-plugin.war.path}</jenkins.war.path>
+
+        <!--<org.apache.commons.logging.robotlogger.defaultlog>ALL</org.apache.commons.logging.robotlogger.defaultlog>-->
+        <!--<org.apache.commons.logging.robotlogger.defaultlog>TRACE</org.apache.commons.logging.robotlogger.defaultlog>-->
+        <!--<org.apache.commons.logging.robotlogger.defaultlog>DEBUG</org.apache.commons.logging.robotlogger.defaultlog>-->
+
+        <!--jenkins LTS version-->
+        <jenkins.version>2.190.2</jenkins.version>
+
+        <robotframework.version>3.1.1</robotframework.version>
+    </properties>
+
+    <dependencies>
+
+        <!--"vanilla" jenkins-->
+<!--        <dependency>-->
+<!--            <groupId>org.jenkins-ci.main</groupId>-->
+<!--            <artifactId>jenkins-war</artifactId>-->
+<!--            <version>${jenkins.version}</version>-->
+<!--            <scope>test</scope>-->
+<!--            <type>war</type>-->
+<!--        </dependency>-->
+
+        <!--custom war-->
+        <dependency>
+            <groupId>io.jenkins.plugins</groupId>
+            <artifactId>sandbox-plugin</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>test</scope>
+            <type>war</type>
+        </dependency>
+
+
+        <dependency>
+            <groupId>org.robotframework</groupId>
+            <artifactId>robotframework</artifactId>
+            <version>${robotframework.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.robotframework</groupId>
+            <artifactId>javalib-core</artifactId>
+            <version>1.2.1</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.hi-fi</groupId>
+            <artifactId>robotframework-httprequestlibrary</artifactId>
+            <version>0.0.13</version>
+	    <!--<scope>test</scope>-->
+        </dependency>
+        <dependency>
+            <groupId>com.github.hi-fi</groupId>
+            <artifactId>robotframework-dblibrary</artifactId>
+            <version>3.1.1</version>
+	    <!--<scope>test</scope>-->
+        </dependency>
+        <dependency>
+            <groupId>com.github.hi-fi</groupId>
+            <artifactId>robotframework-seleniumlibrary</artifactId>
+	    <version>3.14.0.0</version>
+	    <!--<scope>test</scope>-->
+        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>com.machinepublishers</groupId>-->
+            <!--<artifactId>jbrowserdriver</artifactId>-->
+            <!--<version>1.0.1</version>-->
+        <!--</dependency>-->
+        <!-- DB for DBlibrary to test -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>1.4.192</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!--<dependency>-->
+            <!--<groupId>com.sun.net.httpserver</groupId>-->
+            <!--<artifactId>http</artifactId>-->
+            <!--<version>20070405</version>-->
+            <!--<scope>test</scope>-->
+        <!--</dependency>-->
+
+        <dependency>
+            <groupId>com.thedeanda</groupId>
+            <artifactId>lorem</artifactId>
+            <scope>compile</scope>
+            <version>2.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.6</version>
+            <scope>provided</scope>
+        </dependency>
+
+    </dependencies>
+
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <artifactId>maven-antrun-plugin</artifactId>
+                    <version>1.8</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.8.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.robotframework</groupId>
+                    <artifactId>robotframework-maven-plugin</artifactId>
+                    <version>1.5.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>build-helper-maven-plugin</artifactId>
+                    <version>3.0.0</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
+        <plugins>
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>process-resources</phase>
+                        <configuration>
+                            <exportAntProperties>true</exportAntProperties>
+                            <tasks>
+                                <echo>${jenkins.war.path}</echo>
+<!--                                <mkdir dir="${project.build.directory}/jenkins-jar"/>-->
+                                <mkdir dir="${project.build.directory}/logs"/>
+                            </tasks>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <!--<version>3.0.0</version>-->
+                <executions>
+                    <execution>
+                        <id>reserve-network-port</id>
+                        <goals>
+                            <goal>reserve-network-port</goal>
+                        </goals>
+                        <phase>process-test-classes</phase>
+                        <configuration>
+                            <!--<maxPortNumber>50000</maxPortNumber>-->
+                            <!--<minPortNumber>40000</minPortNumber>-->
+                            <portNames>
+                                <portName>jenkins.http.port</portName>
+                            </portNames>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <!-- Execute Robot Framework Test Suite -->
+                <groupId>org.robotframework</groupId>
+                <artifactId>robotframework-maven-plugin</artifactId>
+                <!--<version>1.5.1</version>-->
+                <executions>
+                    <execution>
+                        <id>test</id>
+                        <phase>test</phase>
+                        <!--<phase>integration-test</phase>-->
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <!--<logLevel>debug</logLevel>-->
+                            <logLevel>TRACE</logLevel>
+                            <testCasesDirectory>${project.basedir}/src/test/resources/robotframework</testCasesDirectory>
+                            <!--<testCasesDirectory>${project.basedir}/src/test/resources/robotframework/jenkins/</testCasesDirectory>-->
+                            <!--<testCasesDirectory>${project.basedir}/src/test/resources/robotframework/quickstart/</testCasesDirectory>-->
+                        </configuration>
+                    </execution>
+                </executions>
+                <configuration>
+                    <!--<logLevel>TRACE:INFO</logLevel>-->
+                    <logLevel>TRACE</logLevel>
+                    <excludes>
+                        <exclude>ignore</exclude>
+                        <exclude>ignored</exclude>
+                        <exclude>exclude</exclude>
+                        <exclude>excluded</exclude>
+                        <exclude>todo</exclude>
+                        <exclude>TODO</exclude>
+                        <exclude>fixme</exclude>
+                        <exclude>FIXME</exclude>
+                    </excludes>
+                    <xunitFile>${project.build.directory}/xunit-report.xml</xunitFile>
+
+                    <variables>
+                        <variable>browser:${browser}</variable>
+                        <!-- Classpath is used in example tests to start H2 -->
+                        <variable>maven_test_classpath:${maven.test.classpath}</variable>
+                        <variable>jenkins_war_path:${jenkins.war.path}</variable>
+
+
+
+                        <variable>java_util_logging_config_file:src/test/resources/logging.properties</variable>
+
+                        <variable>PG_PORT:${pg.port}</variable>
+                        <variable>JENKINS_PORT:${jenkins.http.port}</variable>
+                        <variable>jersey_http_port:${jersey.http.port}</variable>
+                        <variable>KAFKA_PORT:${kafka.port}</variable>
+                        <variable>ZK_PORT:${zk.port}</variable>
+
+
+                    </variables>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.robotframework</groupId>
+                        <artifactId>robotframework</artifactId>
+                        <version>${robotframework.version}</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.0.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>test-jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <!-- Build the fat jar with all dependencies -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.6</version>
+                <configuration>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <mainClass>org.robotframework.RobotFramework</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>com.github.spotbugs</groupId>
+                <artifactId>spotbugs-maven-plugin</artifactId>
+                <version>3.1.10</version>
+                <configuration>
+                    <failOnError>${spotbugs.failOnError}</failOnError>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>spotbugs</id>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <phase>verify</phase>
+                        <configuration>
+                            <!--  Do not define excludeFilterFile here as it will force a plugin to provide a file -->
+                            <!--  Instead we configure this in a profile -->
+                            <xmlOutput>true</xmlOutput>
+                            <spotbugsXmlOutput>false</spotbugsXmlOutput>
+                            <effort>${spotbugs.effort}</effort>
+                            <threshold>${spotbugs.threshold}</threshold>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+    </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <!-- Ensure Python files are executable on Unix environments -->
+            <id>unix</id>
+            <activation>
+                <os>
+                    <family>unix</family>
+                </os>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <version>1.8</version>
+                        <executions>
+                            <execution>
+                                <id>generate-test-resources</id>
+                                <phase>generate-test-resources</phase>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                                <configuration>
+                                    <target>
+                                        <echo>Ensure Python files are executable</echo>
+                                        <chmod dir="${basedir}/src" perm="755" includes="**/*.py"
+                                               verbose="true" />
+                                    </target>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>define-classpath</id>
+                                <phase>pre-integration-test</phase>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                                <configuration>
+                                    <exportAntProperties>true</exportAntProperties>
+                                    <target>
+                                        <property name="maven.runtime.classpath"
+                                                  refid="maven.runtime.classpath" />
+                                        <property name="maven.test.classpath"
+                                                  refid="maven.test.classpath" />
+                                    </target>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <!--<version>3.8.0</version>-->
+                        <configuration>
+                            <source>${maven.compiler.source}</source>
+                            <target>${maven.compiler.target}</target>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>normalRun</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.robotframework</groupId>
+                        <artifactId>robotframework-maven-plugin</artifactId>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>run-tests-with-ride</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.robotframework</groupId>
+                        <artifactId>robotframework-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <phase>integration-test</phase>
+                                <goals>
+                                    <goal>acceptance-test</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <argumentFile>${ride.argumentFile}</argumentFile>
+                            <listener>${ride.listener}</listener>
+                            <testCasesDirectory>${ride.testCasesDirectory}</testCasesDirectory>
+                            <!-- Python library location -->
+                            <extraPathDirectories>
+                                <extraPathDirectory>${project.basedir}/src/test/resources/libraries</extraPathDirectory>
+                            </extraPathDirectories>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+</project>
